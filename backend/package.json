@@ -1,0 +1,19 @@
+{
+  "name": "erc-4337-backend",
+  "version": "1.0.0",
+  "description": "Backend API for ERC-4337 Smart Wallet with Passkey verification",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ethers": "^6.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "author": "elohcrypto",
+  "license": "MIT"
+}

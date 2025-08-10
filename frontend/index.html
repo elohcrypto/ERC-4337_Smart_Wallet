@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERC-4337 Smart Wallet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #status {
+            margin-top: 20px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>ERC-4337 Smart Wallet</h1>
+    <p>Use Passkeys for secure wallet authentication.</p>
+    <button onclick="registerPasskey()">Register Passkey</button>
+    <button onclick="authenticatePasskey()">Authenticate with Passkey</button>
+    <button onclick="initializeContract()">Connect Wallet</button>
+    <button onclick="executeTransaction('0x...', 0, '0x')">Execute Transaction</button>
+    <div id="status"></div>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

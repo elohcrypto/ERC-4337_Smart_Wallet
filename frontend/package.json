@@ -1,0 +1,14 @@
+{
+  "name": "erc-4337-smart-wallet-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for ERC-4337 Smart Wallet with WebAuthn Passkey authentication",
+  "scripts": {
+    "start": "http-server -p 8080"
+  },
+  "dependencies": {
+    "ethers": "^6.7.0",
+    "http-server": "^14.1.1"
+  },
+  "author": "elohcrypto",
+  "license": "MIT"
+}
