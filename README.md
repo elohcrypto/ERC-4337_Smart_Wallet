@@ -73,7 +73,7 @@ graph TD
    npm install
    npm start
    ```
-   Serves frontend on localhost:8080
+   Serves frontend on localhost:8088
 
 4. **Run Tests**:
    ```bash

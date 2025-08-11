@@ -3,7 +3,24 @@ const { ethers } = require('ethers');
 const app = express();
 
 app.use(express.json());
-app.use(express.static('../frontend'));
+
+// Request logging
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path} - ${req.get('User-Agent')}`);
+    next();
+});
+
+// CORS headers for frontend on port 8088
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
 
 // Smart contract configuration
 const SMART_WALLET_ABI = [
@@ -69,7 +86,7 @@ app.post('/api/execute', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
     await initBlockchain();
-    console.log(`Backend server running on port ${PORT}`);
+    console.log(`Backend server running on http://0.0.0.0:${PORT}`);
 });

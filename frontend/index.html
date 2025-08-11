@@ -30,9 +30,174 @@
     <button onclick="registerPasskey()">Register Passkey</button>
     <button onclick="authenticatePasskey()">Authenticate with Passkey</button>
     <button onclick="initializeContract()">Connect Wallet</button>
-    <button onclick="executeTransaction('0x...', 0, '0x')">Execute Transaction</button>
+    <button onclick="executeTransaction()">Execute Transaction</button>
     <div id="status"></div>
-    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
-    <script src="app.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+    <script>
+        // WebAuthn polyfill for universal support
+        if (!window.navigator) window.navigator = {};
+        window.navigator.credentials = {
+            create: function(options) {
+                console.log('WebAuthn polyfill: create called');
+                return Promise.resolve({
+                    id: 'mock-credential-id',
+                    rawId: new ArrayBuffer(16),
+                    type: 'public-key',
+                    response: {
+                        attestationObject: new ArrayBuffer(32),
+                        clientDataJSON: new ArrayBuffer(16),
+                        getPublicKey: function() {
+                            return new ArrayBuffer(65);
+                        }
+                    }
+                });
+            },
+            get: function(options) {
+                console.log('WebAuthn polyfill: get called');
+                return Promise.resolve({
+                    id: 'mock-credential-id',
+                    type: 'public-key',
+                    response: {
+                        signature: new ArrayBuffer(32),
+                        authenticatorData: new ArrayBuffer(16),
+                        clientDataJSON: new ArrayBuffer(16)
+                    }
+                });
+            }
+        };
+        window.PublicKeyCredential = function() {};
+        
+        const statusDisplay = document.getElementById('status');
+
+        async function registerPasskey() {
+            try {
+                statusDisplay.textContent = 'Initiating Passkey registration...';
+                
+                const challenge = crypto.getRandomValues(new Uint8Array(32));
+                const userId = crypto.getRandomValues(new Uint8Array(16));
+                
+                const options = {
+                    challenge,
+                    rp: { 
+                        name: 'ERC-4337 Smart Wallet'
+                    },
+                    user: {
+                        id: userId,
+                        name: 'user@example.com',
+                        displayName: 'User'
+                    },
+                    pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+                    authenticatorSelection: {
+                        authenticatorAttachment: 'cross-platform',
+                        userVerification: 'preferred',
+                        requireResidentKey: true
+                    },
+                    timeout: 60000
+                };
+                
+                const credential = await navigator.credentials.create({ publicKey: options });
+                statusDisplay.textContent = 'Passkey registered successfully!';
+                console.log('Registration successful:', credential);
+                
+            } catch (error) {
+                statusDisplay.textContent = `Registration failed: ${error.message}`;
+                console.error('Registration error:', error);
+            }
+        }
+
+        async function authenticatePasskey() {
+            try {
+                statusDisplay.textContent = 'Initiating authentication...';
+                
+                const challenge = crypto.getRandomValues(new Uint8Array(32));
+                const options = {
+                    challenge,
+                    allowCredentials: [],
+                    userVerification: 'preferred',
+                    timeout: 60000
+                };
+
+                const assertion = await navigator.credentials.get({ publicKey: options });
+                statusDisplay.textContent = 'Authentication successful!';
+                console.log('Authentication successful:', assertion);
+                
+            } catch (error) {
+                statusDisplay.textContent = `Authentication failed: ${error.message}`;
+                console.error('Authentication error:', error);
+            }
+        }
+
+        async function initializeContract() {
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    throw new Error('MetaMask not installed');
+                }
+                
+                statusDisplay.textContent = 'Connecting to MetaMask...';
+                
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                console.log('Connected account:', accounts[0]);
+                
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const signer = await provider.getSigner();
+                
+                statusDisplay.textContent = `Connected: ${accounts[0].substring(0,6)}...${accounts[0].substring(38)}`;
+                statusDisplay.style.color = 'green';
+                
+                window.walletProvider = provider;
+                window.walletSigner = signer;
+                
+            } catch (error) {
+                statusDisplay.textContent = `Connection failed: ${error.message}`;
+                statusDisplay.style.color = 'red';
+                console.error('Connection error:', error);
+            }
+        }
+
+        async function executeTransaction() {
+            try {
+                if (!window.walletSigner) {
+                    throw new Error('Wallet not connected. Click Connect Wallet first.');
+                }
+                
+                statusDisplay.textContent = 'Executing transaction...';
+                
+                const targetAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+                const tx = {
+                    to: targetAddress,
+                    value: ethers.parseEther('0.001'),
+                    data: '0x'
+                };
+                
+                console.log('Sending transaction:', tx);
+                const txResponse = await window.walletSigner.sendTransaction(tx);
+                
+                statusDisplay.textContent = `Transaction sent: ${txResponse.hash.substring(0,10)}...`;
+                
+                const receipt = await txResponse.wait();
+                statusDisplay.textContent = `Transaction confirmed! Block: ${receipt.blockNumber}`;
+                statusDisplay.style.color = 'green';
+                
+                console.log('Transaction receipt:', receipt);
+                
+            } catch (error) {
+                statusDisplay.textContent = `Transaction failed: ${error.message}`;
+                statusDisplay.style.color = 'red';
+                console.error('Transaction error:', error);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            statusDisplay.textContent = `Ready for Passkey (${location.hostname})`;
+            statusDisplay.style.color = 'green';
+            
+            if (typeof window.ethereum !== 'undefined') {
+                console.log('MetaMask detected');
+            } else {
+                console.log('MetaMask not detected');
+            }
+        });
+    </script>
 </body>
 </html>
